@@ -1,0 +1,7 @@
+.env
+
+.vscode
+config.toml
+debug
+debug.log
+tmix
