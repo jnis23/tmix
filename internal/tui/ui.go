@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"tmix/internal/config"
 	"tmix/internal/providers"
 	"tmix/internal/tui/components/playlists"
 
@@ -122,7 +123,7 @@ func (m model) MiniMode() string {
 	}
 }
 
-func New(config *Config) (*model, error) {
+func New(config *config.Config) (*model, error) {
 	// get a list of components that can be focused
 	return &model{
 		width:     0,

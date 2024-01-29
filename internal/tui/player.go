@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"tmix/internal/config"
 	pl "tmix/internal/player"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -16,7 +17,7 @@ type playerModel struct {
 	song    pl.Song
 	player  pl.Player
 	playbar progress.Model
-	config  *Config
+	config  *config.Config
 }
 
 // Keys
@@ -171,7 +172,7 @@ func (p playerModel) Init() tea.Cmd {
 	return cmd
 }
 
-func NewPlayerModel(config *Config) *playerModel {
+func NewPlayerModel(config *config.Config) *playerModel {
 	pb := progress.New(
 		progress.WithoutPercentage(),
 		progress.WithGradient("#73daca", "#7DCFFF"),

@@ -3,8 +3,9 @@ package providers
 
 import (
 	"log"
+	"tmix/internal/config"
+	cfg "tmix/internal/config"
 	"tmix/internal/player"
-	"tmix/internal/providers/tokencache"
 )
 
 type Song struct {
@@ -35,14 +36,9 @@ type MusicProvider interface {
 	FetchPlaylists() []Playlist
 }
 
-type ProviderConfig struct {
-	Spotify           SpotifyConfig `toml:"spotify"`
-	AuthTokenCacheDir string        `toml:"auth-token-cache-dir"`
-}
-
-func LoadProviders(config *ProviderConfig) []MusicProvider {
+func LoadProviders(config *config.ProviderConfig) []MusicProvider {
 	spot := NewSpotify(config.Spotify)
 	log.Printf("Loading new spotify provider with: %v", config.Spotify)
-	spot.cache = tokencache.New(config.AuthTokenCacheDir)
+	spot.cache = cfg.New(config.AuthTokenCacheDir)
 	return []MusicProvider{spot}
 }
