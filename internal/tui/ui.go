@@ -77,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd = m.playlists.LoadPlaylistsCmd
 		}
 		// Now that we are logged in, we can prepopulate current song and playlist data
-		cmds = append(cmds, m.player.SongChangedCmd, cmd)
+		cmds = append(cmds, m.player.Init(), m.player.SongChangedCmd, cmd)
 	}
 
 	if m.currentProvider != nil {
@@ -122,16 +122,12 @@ func (m model) MiniMode() string {
 	}
 }
 
-type Config struct {
-	Providers *providers.ProviderConfig `toml:"providers"`
-}
-
 func New(config *Config) (*model, error) {
 	// get a list of components that can be focused
 	return &model{
 		width:     0,
 		height:    0,
 		providers: *NewProviders(config.Providers),
-		player:    *NewPlayerModel(),
+		player:    *NewPlayerModel(config),
 	}, nil
 }
