@@ -27,13 +27,18 @@ func parseFlags() *Flags {
 	return flags
 }
 
-func main() {
-	flags := parseFlags()
-	f, err := tea.LogToFile("debug.log", "debug")
+func configureLogs() *os.File {
+	f, err := tea.LogToFile(config.LogPath, "debug")
 	if err != nil {
 		fmt.Println("Failed:", err)
 		os.Exit(1)
 	}
+	return f
+}
+
+func main() {
+	flags := parseFlags()
+	f := configureLogs()
 	defer f.Close()
 
 	config := config.LoadConfig(flags.ConfigPath)

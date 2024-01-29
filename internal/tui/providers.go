@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"tmix/internal/config"
 	pro "tmix/internal/providers"
 )
 
@@ -83,7 +84,7 @@ func (m providersModel) View() string {
 	return m.providers.View()
 }
 
-func NewProviders(config *pro.ProviderConfig) *providersModel {
+func NewProviders(config *config.ProviderConfig) *providersModel {
 	items := []list.Item{}
 	for _, p := range pro.LoadProviders(config) {
 		pv := providerListItem{p}

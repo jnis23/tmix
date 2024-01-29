@@ -1,4 +1,4 @@
-package tokencache
+package config
 
 import (
 	"encoding/json"
@@ -18,12 +18,7 @@ type TokenCache struct {
 func New(dir string) *TokenCache {
 	var d = dir
 	if dir == "" {
-		dir, err := os.UserHomeDir()
-		if err != nil {
-			log.Print("Unable to get user home directory and no directory passed. Disabling caching.")
-			return &TokenCache{"", false}
-		}
-		d = dir + "/.tmix"
+		d = CacheDir
 	}
 
 	cache := &TokenCache{d, true}

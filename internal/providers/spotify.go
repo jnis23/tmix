@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 	"tmix/internal/browser"
+	"tmix/internal/config"
 	"tmix/internal/player"
-	"tmix/internal/providers/tokencache"
 
 	"github.com/zmb3/spotify/v2"
 	spot "github.com/zmb3/spotify/v2"
@@ -24,20 +24,15 @@ var (
 	auth        *spotauth.Authenticator
 )
 
-type SpotifyConfig struct {
-	ClientId     string `toml:"client-id"`
-	ClientSecret string `toml:"client-secret"`
-}
-
 type Spotify struct {
 	AbstractMusicProvider
 	client *spot.Client
 	player *player.SpotifyPlayer
-	cache  *tokencache.TokenCache
-	config SpotifyConfig
+	cache  *config.TokenCache
+	config config.SpotifyConfig
 }
 
-func NewSpotify(cfg SpotifyConfig) *Spotify {
+func NewSpotify(cfg config.SpotifyConfig) *Spotify {
 	auth = spotauth.New(
 		spotauth.WithRedirectURL(redirectUrl),
 		spotauth.WithScopes(
