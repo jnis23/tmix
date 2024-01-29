@@ -1,4 +1,4 @@
-# tmix
+# tmix 🎧
 
 A terminal UI for your favorite music provider*. 
 
