@@ -90,7 +90,7 @@ var pbTickCmd = tea.Tick(time.Second, func(t time.Time) tea.Msg {
 	return pbTickMsg(t)
 })
 
-func (p *playerModel) playbarTickCmd() tea.Cmd {
+func (p *playerModel) playbarSyncCmd() tea.Cmd {
 	if p.config.SyncRate > 0 {
 		return tea.Tick(time.Duration(p.config.SyncRate)*time.Second, func(t time.Time) tea.Msg {
 			if p.player != nil {
@@ -111,7 +111,6 @@ func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m := msg.(type) {
 	// TODO: impl Window resize to greedily take up space with the prog bar
 	case tea.KeyMsg:
-		log.Print("Got keypress: ", m.String())
 		switch {
 		case key.Matches(m, playerKeys.PlayPause):
 			return p, p.PlayPauseCmd
@@ -121,7 +120,6 @@ func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, p.PreviousSongCmd
 		}
 	case songChangedMsg:
-		log.Print("Song Updated! ", m)
 		if (p.song == pl.Song{}) {
 			cmd = pbTickCmd
 		} else
@@ -133,7 +131,7 @@ func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return p, cmd
 	case syncMsg:
 		p.song = m.song
-		return p, p.playbarTickCmd()
+		return p, p.playbarSyncCmd()
 	case pbTickMsg:
 		// Approximately 1 second between ticks
 		if p.config.SyncRate != 1 {
@@ -167,9 +165,8 @@ func (p playerModel) View() string {
 
 func (p playerModel) Init() tea.Cmd {
 	var cmd tea.Cmd
-	log.Print("Sync rate is ", p.config.SyncRate)
 	if p.config.SyncRate > 0 {
-		cmd = p.playbarTickCmd()
+		cmd = p.playbarSyncCmd()
 	}
 	return cmd
 }
