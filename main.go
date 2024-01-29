@@ -17,14 +17,17 @@ type Flags struct {
 
 func parseFlags() *Flags {
 	flags := &Flags{
-		ConfigPath: flag.String("configPath", "", "Path to your config file. This will default to $HOME/.config/tmix/config.toml"),
+		ConfigPath: flag.String(
+			"configPath",
+			"",
+			"Path to your config file. This will default to $HOME/.config/tmix/config.toml",
+		),
 	}
 	flag.Parse()
 	return flags
 }
 
 func main() {
-	// Display currently playing song
 	flags := parseFlags()
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
@@ -32,6 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer f.Close()
+
 	config := config.LoadConfig(flags.ConfigPath)
 	model, err := tui.New(config)
 	if err != nil {
@@ -41,7 +45,6 @@ func main() {
 	p := tea.NewProgram(
 		model,
 		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
 	)
 
 	if _, err := p.Run(); err != nil {

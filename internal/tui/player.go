@@ -16,6 +16,7 @@ type playerModel struct {
 	song    pl.Song
 	player  pl.Player
 	playbar progress.Model
+	config  *Config
 }
 
 // Keys
@@ -51,6 +52,10 @@ type songChangedMsg struct {
 	event changedEvent
 }
 
+type syncMsg struct {
+	song pl.Song
+}
+
 type pbTickMsg time.Time
 
 func (p *playerModel) SongChangedCmd() tea.Msg {
@@ -76,14 +81,27 @@ func (p *playerModel) NextSongCmd() tea.Msg {
 func (p *playerModel) PreviousSongCmd() tea.Msg {
 	s, err := p.player.PreviousSong()
 	if err != nil {
-		log.Fatalf("Failed to get previous song: %s", err)
+		log.Fatal("Failed to get previous song: ", err)
 	}
 	return songChangedMsg{s, PrevNext}
 }
 
-var playbarTickCmd = tea.Tick(time.Second, func(t time.Time) tea.Msg {
+var pbTickCmd = tea.Tick(time.Second, func(t time.Time) tea.Msg {
 	return pbTickMsg(t)
 })
+
+func (p *playerModel) playbarTickCmd() tea.Cmd {
+	if p.config.SyncRate > 0 {
+		return tea.Tick(time.Duration(p.config.SyncRate)*time.Second, func(t time.Time) tea.Msg {
+			if p.player != nil {
+				return syncMsg{p.player.CurrentSong()}
+			} else {
+				return syncMsg{pl.Song{}}
+			}
+		})
+	}
+	return nil
+}
 
 // tea.Model impl
 func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -93,7 +111,7 @@ func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m := msg.(type) {
 	// TODO: impl Window resize to greedily take up space with the prog bar
 	case tea.KeyMsg:
-		log.Printf("Got keypress: %s", m.String())
+		log.Print("Got keypress: ", m.String())
 		switch {
 		case key.Matches(m, playerKeys.PlayPause):
 			return p, p.PlayPauseCmd
@@ -103,29 +121,32 @@ func (p playerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, p.PreviousSongCmd
 		}
 	case songChangedMsg:
-		log.Printf("Song Updated! %v", m)
+		log.Print("Song Updated! ", m)
 		if (p.song == pl.Song{}) {
-			cmd = playbarTickCmd
-		}
+			cmd = pbTickCmd
+		} else
 		// Sometimes next/previous will beat the current song request and we need to check again
 		if p.song.Equals(m.song) && m.event == PrevNext {
 			cmd = p.SongChangedCmd
 		}
 		p.song = m.song
 		return p, cmd
+	case syncMsg:
+		p.song = m.song
+		return p, p.playbarTickCmd()
 	case pbTickMsg:
-		// Approximately 1 second between ticks, we can probably calc more accurately if needed
-		// TODO: Should we delegate this to the player?
-		// If so, this can't be an async call and need to be managed in-band
-		if p.player.IsPlaying() {
-			p.song.Position += 1000
+		// Approximately 1 second between ticks
+		if p.config.SyncRate != 1 {
+			if p.player.IsPlaying() {
+				p.song.Position += 1000
+			}
 		}
 
 		// The song is over and we should check for the new song
 		if p.song.Position >= p.song.Length {
 			cmd = p.SongChangedCmd
 		}
-		return p, tea.Sequence(cmd, playbarTickCmd)
+		return p, tea.Sequence(cmd, pbTickCmd)
 
 	}
 	return p, nil
@@ -145,18 +166,25 @@ func (p playerModel) View() string {
 }
 
 func (p playerModel) Init() tea.Cmd {
-	return nil
+	var cmd tea.Cmd
+	log.Print("Sync rate is ", p.config.SyncRate)
+	if p.config.SyncRate > 0 {
+		cmd = p.playbarTickCmd()
+	}
+	return cmd
 }
 
-func NewPlayerModel() *playerModel {
+func NewPlayerModel(config *Config) *playerModel {
 	pb := progress.New(
 		progress.WithoutPercentage(),
 		progress.WithGradient("#73daca", "#7DCFFF"),
 	)
 	pb.Width = 150
-	return &playerModel{
+	model := &playerModel{
 		playbar: pb,
+		config:  config,
 	}
+	return model
 }
 
 // Helpers
