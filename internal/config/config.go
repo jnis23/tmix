@@ -48,16 +48,18 @@ func loadCacheDir() string {
 	}
 
 	path := fmt.Sprintf("%s/tmix", cache)
-	return checkCreateDir(path)
+	checkCreateDir(path)
+	return path
 }
 
 func loadConfigDir() string {
 	config := fmt.Sprintf("%s/.config/tmix", homeOrCurrentDir())
 
-	return checkCreateDir(config)
+	checkCreateDir(config)
+	return config
 }
 
-func checkCreateDir(dir string) string {
+func checkCreateDir(dir string) {
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
 			log.Print("Creating new dir at ", dir)
@@ -67,7 +69,6 @@ func checkCreateDir(dir string) string {
 			}
 		}
 	}
-	return dir
 }
 
 func LoadConfig(configPath *string) *Config {
