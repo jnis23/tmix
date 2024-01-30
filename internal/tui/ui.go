@@ -40,7 +40,7 @@ var (
 
 // tea.Model impl
 func (m model) Init() tea.Cmd {
-	return tea.EnterAltScreen
+	return tea.Sequence(m.providers.Init(), tea.EnterAltScreen)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

@@ -2,7 +2,6 @@ package tui
 
 import (
 	"log"
-	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -31,18 +30,7 @@ func (p providerListItem) Description() string {
 }
 func (p providerListItem) FilterValue() string { return p.Name() }
 
-func (m providersModel) Init() tea.Cmd {
-	return nil
-}
-
-type tickMsg time.Time
 type loginCompleteMsg pro.MusicProvider
-
-func tickCmd() tea.Cmd {
-	return tea.Tick(time.Second*1, func(t time.Time) tea.Msg {
-		return tickMsg(t)
-	})
-}
 
 func (m *providersModel) loginCmd(pvi *providerListItem) tea.Cmd {
 	return func() tea.Msg {
@@ -52,6 +40,16 @@ func (m *providersModel) loginCmd(pvi *providerListItem) tea.Cmd {
 		m.currProvider = pvi
 		return loginCompleteMsg(pvi)
 	}
+}
+
+func (m providersModel) Init() tea.Cmd {
+	// if we only have one provider, automatically login
+	items := m.providers.Items()
+	if len(items) == 1 {
+		provider:= items[0].(providerListItem)
+		return m.loginCmd(&provider)
+	}
+	return nil
 }
 
 func (m providersModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
